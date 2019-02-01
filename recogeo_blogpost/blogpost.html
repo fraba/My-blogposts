@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Francesco Bailo" />
+
+
+<title>recogeo: A new R package to reconcile changing geographies boundaries (and corresponding variables)</title>
+
+<script src="blogpost_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="blogpost_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="blogpost_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="blogpost_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="blogpost_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="blogpost_files/navigation-1.1/tabsets.js"></script>
+<link href="blogpost_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="blogpost_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">recogeo: A new R package to reconcile changing geographies boundaries (and corresponding variables)</h1>
+<h4 class="author"><em>Francesco Bailo</em></h4>
+
+</div>
+
+
+<p>Demographics information is usually reported in relation to precise boundaries: administrative, electoral, statistical, etc. Comparing demographics information reported at different point in time is often problematic because boundaries keep changing. The <strong>recogeo</strong> package faciliates reconciling boundaries and their data by a spatial analysis of the boundaries of two different periods. In this post, I explain how to install the package, reconcile two spatial objects and check the results.</p>
+<div id="install-the-package" class="section level2">
+<h2>Install the package</h2>
+<p>Let’s first make sure the package is installed from Github and can load correctly. If you don’t have it already, you might to install the devtools with <code>install.packages('devtools)</code>. Then you can install the package with:</p>
+<pre class="r"><code>library(devtools) 
+install_github(&#39;fraba/recogeo&#39;)</code></pre>
+<p>and load it with .</p>
+<p>At this point the <strong>recogeo</strong> package should be loaded and attached. If you get an error, make sure to create a new issue <a href="https://github.com/fraba/recogeo/issues">here</a> or to post a comment below.</p>
+</div>
+<div id="spatial-data" class="section level2">
+<h2>Spatial data</h2>
+<p>Now let’s load two <a href="https://en.wikipedia.org/wiki/Simple_Features"><em>Simple Features</em></a> (or <em>sf</em>) and their corresponding <em>data.frame</em>. These two objects contains information about boundaries and population of Piedmont <strong>comune</strong>, the lowest administrative divisions in Italy, for 1991 and 2018. You can download the <code>spatial_objs.rda</code> from <a href="http://example.com">here</a>.</p>
+<pre class="r"><code>load(&quot;data/spatial_objs.rda&quot;)</code></pre>
+<p>Let’s plot the two <em>sf</em> polygons, coloring each comune based on corresponding population.</p>
+<pre class="r"><code>library(ggplot2)
+library(gridExtra)
+grid.arrange(
+  ggplot(piedmont_1991.sf) +
+    geom_sf(aes(fill = log(POP_1991)), lwd = 0.2) +
+    scale_fill_gradient(low=&quot;yellow&quot;, high=&quot;red&quot;),
+  ggplot(piedmont_2018.sf) +
+    geom_sf(aes(fill = log(POP_2018)), lwd = 0.2) +
+    scale_fill_gradient(low=&quot;yellow&quot;, high=&quot;red&quot;),
+  ncol = 2)</code></pre>
+<p><img src="blogpost_files/figure-html/fig1-1.png" width="672" /></p>
+<p>From 1991 to 2018, the number of <em>comune</em> in Piedmont has decreased from 1,209 to 1,197 while the total population of the region has increased from 4,302,565 to 4,371,054. In the 2018 dataset, 4 <em>comune</em> have missing values for <code>POP_2018</code> (grey in the plot).</p>
+<p>We want to compare how the population has changed over time. But, as it is common, altought the outer boundaries of the region have probably not changed (but let’s also check this) internal boundaries have been redrawn. In other words, to conduct a one-to-one comparison between 1991 and 2018, we need to identify a new set of geographic units (i.e. polygons) that is related to both the 1991 and 2018 polygons either by a <strong>one-to-one relation</strong>, when the unit has not changed over time, or by a <strong>one-to-many</strong> relation, when the unit has changed. The <strong>one-to-many</strong> relation will involve the union of multiple polygons and the transformation of their varibales.</p>
+<p>First, let’s see whether the external boundaries have changed. How to do is not a trivial problem. Even if two polygons represent the same geographic area it would be rare for the two to be <em>exactly</em> equal. From a GIS perspective <em>equality</em> (or <code>sf::st_equals()</code>) means that the ordered set of points defining the two spatial features is equal, so same point coordinates but also points expressed in the same order. Clearly if two features are the product of distinct digitalisation processes the number, order and position of points will be different or slighlty different. As a result the area of the polygons defined by the external boundaries will be similar but not equal.</p>
+<p>Let’s check it, after removing (small) gaps between polygons and cobining all them all:</p>
+<pre class="r"><code>library(dplyr)
+library(lwgeom)
+
+piedmont_union_1991.sf &lt;-
+  piedmont_1991.sf %&gt;% 
+  st_snap_to_grid(size = 0.1) %&gt;% # Remove the gaps
+  st_make_valid() %&gt;% # Make sure the resulting geometry is valid
+  st_union() # Combine the polygons
+
+area_1991 &lt;- 
+  piedmont_union_1991.sf %&gt;%
+  st_area() %&gt;% # Compute the area in meters
+  as.numeric()
+
+piedmont_union_2018.sf &lt;-
+  piedmont_2018.sf %&gt;% 
+  st_snap_to_grid(size = 0.1) %&gt;% # Remove the gaps
+  st_make_valid() %&gt;% # Make sure the resulting geometry is valid
+  st_union() # Combine the polygons
+
+area_2018 &lt;- 
+  piedmont_union_2018.sf %&gt;%
+  st_area() %&gt;% # Compute the area in meters
+  as.numeric()</code></pre>
+<p><code>piedmont_1991.sf</code> returns an area of 25,388,412,731.44 while<code>piedmont_2018.sf</code> returns an area of 25,393,877,191.08. That is, <code>area_2018</code> is 0.02% bigger than <code>area_1991</code>. That is, this approach will not be that conclusive on whether the two polygons are actually the same.</p>
+<p>A better approach will be to check whether the two polygons <em>contain</em> each other. So</p>
+<pre class="r"><code>st_contains(piedmont_union_1991.sf, 
+            piedmont_union_2018.sf)</code></pre>
+<pre><code>## Sparse geometry binary predicate list of length 1, where the predicate was `contains&#39;
+##  1: (empty)</code></pre>
+<pre class="r"><code>st_contains(piedmont_union_2018.sf, 
+            piedmont_union_1991.sf)</code></pre>
+<pre><code>## Sparse geometry binary predicate list of length 1, where the predicate was `contains&#39;
+##  1: (empty)</code></pre>
+<p>The <code>(empty)</code> results means that, the two geometries don’t contain each other. This is again not surprising since we have two complex polygons defined by 4383 and 4667 points respectively. It only suffices that one point is slighlty outside the other boundary to fail the <code>sf::st_contains()</code> test. But we can overcome this problem by slighlty expand the two geometries by a few meters (e.g. 800) with <code>sf::st_buffer</code> and retest.</p>
+<pre class="r"><code>st_contains(st_buffer(piedmont_union_1991.sf, 800), 
+            piedmont_union_2018.sf)</code></pre>
+<pre><code>## Sparse geometry binary predicate list of length 1, where the predicate was `contains&#39;
+##  1: 1</code></pre>
+<pre class="r"><code>st_contains(st_buffer(piedmont_union_2018.sf, 800), 
+            piedmont_union_1991.sf)</code></pre>
+<pre><code>## Sparse geometry binary predicate list of length 1, where the predicate was `contains&#39;
+##  1: 1</code></pre>
+<p>How much to expand the geometries will depend on the overall size. For example, if we take the <code>piedmont_union_1991.sf</code> the maximum distance between its centroid and its points is 161,548.78 meters so we are expanding the geometry by about 0.5% of this measure.</p>
+<pre class="r"><code>max_distance_1991 &lt;- 
+  piedmont_union_1991.sf %&gt;% 
+  st_cast(&quot;POINT&quot;) %&gt;% 
+  st_distance(st_centroid(piedmont_union_1991.sf)) %&gt;%
+  max() %&gt;% 
+  as.numeric()</code></pre>
+<p><img src="blogpost_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>And this is what the <code>piedmont_union_1991.sf</code> expanded polygon looks like if we plot it behind the <code>piedmont_union_218.sf</code> polygon.</p>
+<p><img src="blogpost_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>We have now a fair assumption that based on our spatial analysis the the outer boundary of the region isn’t changed and what is changed are only internal administrative boundaries.</p>
+</div>
+<div id="relation-between-geographies" class="section level2">
+<h2>Relation between geographies</h2>
+<p>To reconcile the internal geographies, we use the core function from the <strong>recogeo</strong> package: <code>reconcileGeographies()</code>. What the function requires are two spatial objects with a unique id variable (if we don’t specify the column names of the unique id, the first column of each <em>data.frame</em> will be assumed to be the unique id variable). We can also add a preferred CRS with units in meters expressed using the <a href="https://www.epsg-registry.org/">EPSG code</a> (this <a href="http://epsg.io/">link</a> is also usefull to find a coodinate system). Two additional numeric parameters can also be specified: the distance or width in meters of the buffer (<code>dist_buffer</code>) and the minimum intersection area in squared meters (<code>min_inters_area</code>).</p>
+<p>We already explained before why it might be necessary to expand the geometries to test for equality. In the code before we set the <code>dist_buffer</code> to 800 meters but by default the the function will expand them by 5 meters. It is important to try different values if you obtain unsatisfactory results.</p>
+<p>The <code>min_inters_area</code> arguemnt allows you to set the tollerance for the intersection test between two geometries. This might be necessary because of very small differences in the boundaries contained in the two spatial objects. For example, let’s find out which features from <code>piedmont_1991.sf</code> intersects with <code>piedmont_1991.sf</code>.</p>
+<pre class="r"><code>res &lt;- 
+  st_intersects(piedmont_1991.sf, piedmont_2018.sf)</code></pre>
+<p><code>res</code> is now a sparse matrix (actually a list) of with dimensions 1209, 1197, which of course corresponds to the features of the first and second spatial object respectively. The first features of the first spatial objects intersects with the following features from the second object:</p>
+<pre class="r"><code>res[[1]]</code></pre>
+<pre><code>## [1] 1127 1147 1152 1177 1191</code></pre>
+<p>Let’s plot everything.</p>
+<p><img src="blogpost_files/figure-html/unnamed-chunk-12-1.png" width="672" /><img src="blogpost_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
+<p>This intersections seems mostly due to changes in the precision of the geometries from the two datasets. The boundary of <code>piedmont_1991.sf[1,]</code> has 196 points while the boundary of the corresponding <code>piedmont_2018.sf[1127,]</code> has 265 points.</p>
+<p>This specific setting (which is actually very common) raises two questions. 1. Should we consider consider <code>piedmont_1991.sf[1,]</code> and <code>piedmont_2018.sf[1127,]</code> as the same geography? 2. Should we consider the intersection between <code>piedmont_1991.sf[1,]</code> and the other four geographies (1147, 1152, 1177, 1191) as significant enough to suggest to combine all the geographies involved?</p>
+<p>Let’s see how the <code>reconcileGeographies()</code> will answer to both questions, giveng the default arguments of and .</p>
+<p>The answer to the first question is determined by</p>
+<pre class="r"><code>dist_buffer</code></pre>
+<pre><code>## [1] 800</code></pre>
+<pre class="r"><code>res1 &lt;-
+  sf::st_contains(piedmont_1991.sf[1,] %&gt;%
+                    sf::st_buffer(dist_buffer),
+                  piedmont_2018.sf[1127,],
+                  sparse = FALSE)
+res2 &lt;- 
+  sf::st_contains(piedmont_2018.sf[1127,] %&gt;%
+                    sf::st_buffer(dist_buffer),
+                  piedmont_1991.sf[1,],
+                  sparse = FALSE)
+
+res1 == TRUE &amp; res2 == TRUE</code></pre>
+<pre><code>##      [,1]
+## [1,] TRUE</code></pre>
+<p>And the answer to the second question is determined by</p>
+<pre class="r"><code>min_inters_area</code></pre>
+<pre><code>## [1] 350000</code></pre>
+<pre class="r"><code>intersection_area &lt;-
+  st_area(
+    st_intersection(st_geometry(piedmont_1991.sf[1,]),
+                    st_geometry(piedmont_2018.sf[res[[1]][2:5],]))
+  )
+
+as.numeric(intersection_area) &gt; min_inters_area</code></pre>
+<pre><code>## [1] FALSE FALSE FALSE FALSE</code></pre>
+<p>What the user will need to decide is the tollerance for both the equality and intersection tests. In order to determine the best value it is important to visually inspect the results and probably also to determine the precision of the boundaries (in terms of the number of points used to describe the features) of the two spatial objects. And a rough estimation of the respective precisions can be obtained by <code>object.size(piedmont_1991.sf)</code> (2534.9 Kb) and <code>object.size(piedmont_2018.sf)</code> (2603.7 Kb).</p>
+</div>
+<div id="reconcilegeographies" class="section level2">
+<h2>reconcileGeographies()</h2>
+<p>After determinging the what kind of tollerance should we pass to the function, it is now time to actually run the function on the two spatial objects.</p>
+<pre class="r"><code>library(recogeo)
+res &lt;-
+  recogeo::reconcileGeographies(piedmont_1991.sf, piedmont_2018.sf,
+                                dist_buffer = dist_buffer,
+                                min_inters_area = min_inters_area)</code></pre>
+<p>The results from the function is a <em>data.frame</em> where each row describes a relationship between a pair of geographies from the two datasets.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">unigeokey_A</th>
+<th align="left">unigeokey_B</th>
+<th align="left">type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">004037</td>
+<td align="left">004037</td>
+<td align="left">same</td>
+</tr>
+<tr class="even">
+<td align="left">006076</td>
+<td align="left">006076</td>
+<td align="left">same</td>
+</tr>
+<tr class="odd">
+<td align="left">001065</td>
+<td align="left">001065</td>
+<td align="left">same</td>
+</tr>
+<tr class="even">
+<td align="left">004203</td>
+<td align="left">004203</td>
+<td align="left">same</td>
+</tr>
+<tr class="odd">
+<td align="left">002111</td>
+<td align="left">002170</td>
+<td align="left">AintersectsB</td>
+</tr>
+<tr class="even">
+<td align="left">002052</td>
+<td align="left">002052</td>
+<td align="left">same</td>
+</tr>
+<tr class="odd">
+<td align="left">001210</td>
+<td align="left">001210</td>
+<td align="left">same</td>
+</tr>
+<tr class="even">
+<td align="left">002093</td>
+<td align="left">002093</td>
+<td align="left">same</td>
+</tr>
+<tr class="odd">
+<td align="left">004167</td>
+<td align="left">004167</td>
+<td align="left">AintersectsB</td>
+</tr>
+<tr class="even">
+<td align="left">003082</td>
+<td align="left">003082</td>
+<td align="left">same</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>recogeo</strong> package contains two functions to check the result from <code>reconcileGeographies()</code>. The first function, <code>reportReconciledGeographies()</code>, produces a report to visually inspect every relationship. So for example, the relationship “<code>piedmont_1991.sf[piedmont_1991.sf$PRO_COM_T == '002110',]</code> contains <code>piedmont_2018.sf[piedmont_2018.sf$PRO_COM_T == '002110',]</code>” will be reported like this</p>
+<p><img src="blogpost_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>In this case, it seams clear that the 1991 <em>comune</em> lost part of its territory to another <em>comune</em> or resulting in a new <em>comune</em> being created.</p>
+<p>The function <code>testReconciledGeographies()</code> instead tests the spatial characteristics of reconciled geographies. It takes the <em>data.frame</em> resulting from the <code>reconcileGeographies()</code> function and the spatial objects.</p>
+<pre class="r"><code>test_res &lt;-
+  recogeo::testReconciledGeographies(res, 
+                                     piedmont_1991.sf, piedmont_2018.sf)</code></pre>
+<p>This tests is particularly important to determine whether the results are satisfactory because compare the sum of the areas of the old geographies from the two spatial objects that correspond to new reconciled geographies.</p>
+<pre class="r"><code>kable(test_res[sample(1:nrow(test_res), 10),], row.names = F)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">.unigeokey_new</th>
+<th align="right">n_A</th>
+<th align="right">area_A</th>
+<th align="right">n_B</th>
+<th align="right">area_B</th>
+<th align="right">area_diff_perc</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">342</td>
+<td align="right">1</td>
+<td align="right">24630596</td>
+<td align="right">1</td>
+<td align="right">24885944</td>
+<td align="right">-1.0367</td>
+</tr>
+<tr class="even">
+<td align="right">596</td>
+<td align="right">1</td>
+<td align="right">14390068</td>
+<td align="right">1</td>
+<td align="right">14350670</td>
+<td align="right">0.2738</td>
+</tr>
+<tr class="odd">
+<td align="right">654</td>
+<td align="right">1</td>
+<td align="right">9457429</td>
+<td align="right">1</td>
+<td align="right">8967809</td>
+<td align="right">5.1771</td>
+</tr>
+<tr class="even">
+<td align="right">53</td>
+<td align="right">1</td>
+<td align="right">96442686</td>
+<td align="right">1</td>
+<td align="right">96231784</td>
+<td align="right">0.2187</td>
+</tr>
+<tr class="odd">
+<td align="right">407</td>
+<td align="right">1</td>
+<td align="right">10546479</td>
+<td align="right">1</td>
+<td align="right">11068439</td>
+<td align="right">-4.9491</td>
+</tr>
+<tr class="even">
+<td align="right">1062</td>
+<td align="right">1</td>
+<td align="right">8090767</td>
+<td align="right">1</td>
+<td align="right">8011784</td>
+<td align="right">0.9762</td>
+</tr>
+<tr class="odd">
+<td align="right">65</td>
+<td align="right">1</td>
+<td align="right">121231584</td>
+<td align="right">1</td>
+<td align="right">121912963</td>
+<td align="right">-0.5620</td>
+</tr>
+<tr class="even">
+<td align="right">727</td>
+<td align="right">1</td>
+<td align="right">3933001</td>
+<td align="right">1</td>
+<td align="right">3903543</td>
+<td align="right">0.7490</td>
+</tr>
+<tr class="odd">
+<td align="right">99</td>
+<td align="right">1</td>
+<td align="right">24623624</td>
+<td align="right">1</td>
+<td align="right">24945108</td>
+<td align="right">-1.3056</td>
+</tr>
+<tr class="even">
+<td align="right">608</td>
+<td align="right">1</td>
+<td align="right">14291803</td>
+<td align="right">1</td>
+<td align="right">14386575</td>
+<td align="right">-0.6631</td>
+</tr>
+</tbody>
+</table>
+<p>The column <code>n_A</code> and <code>n_B</code> indicates how many geographies need to be aggregated to create a new reconciled geography. The <code>area_diff_perc</code> column indicates the percentage difference between the two new reconciled geographies resulting from the union of the geographies from the two original spatial objects. Intuitively, a new reconciled geographied can be produced by the union of geographies from any of the two original spatial objects.</p>
+</div>
+<div id="reconciledata" class="section level2">
+<h2>reconcileData()</h2>
+<p>The final step is to produce a new dataset, optionally containing also geographic information of a new set of reconciled geographies, with variables transformed when necessary to allow a comparison between data from the two original datasets.</p>
+<pre class="r"><code>reconciled_data.sf &lt;-
+  recogeo::reconcileData(res, 
+                         piedmont_1991.sf, piedmont_2018.sf, 
+                         varA = &#39;POP_1991&#39;, varB = &#39;POP_2018&#39;,
+                         return_spatial = &quot;B&quot;)</code></pre>
+<p>The arguments <code>varB</code> and <code>varB</code> indicate the variable we want to reconcile for comparison (they will be summed in case geographies are aggregated) while the argument <code>return_spatial</code> indicates whether we want the reconciled spatial features to be based on the first or second original spatial objects.</p>
+<p>After we have reconciled geographies and variables, it is now time to understand how the population has changed over time at the finest level possible given the original information.</p>
+<p><img src="blogpost_files/figure-html/unnamed-chunk-21-1.png" width="864" /></p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

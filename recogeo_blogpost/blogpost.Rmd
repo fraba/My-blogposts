@@ -375,5 +375,7 @@ ggplot(reconciled_data.sf) +
 ```
 
  
+***
 
+Source code and data are available [here](https://github.com/fraba/My-blogposts/tree/master/recogeo_blogpost).
 

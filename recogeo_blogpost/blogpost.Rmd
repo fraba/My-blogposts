@@ -1,5 +1,5 @@
 ---
-title: "recogeo: A new R package to reconcile changing geographies boundaries (and corresponding variables)"
+title: "recogeo: A new R package to reconcile changing geographic boundaries (and corresponding variables)"
 author: "Francesco Bailo"
 output: 
   html_document: 

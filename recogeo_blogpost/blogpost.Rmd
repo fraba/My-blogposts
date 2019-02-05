@@ -14,24 +14,24 @@ library(ggplot2)
 theme_set(theme_bw() + theme(legend.position = 'bottom'))
 ```
 
-Demographics information is usually reported in relation to precise boundaries: administrative, electoral, statistical, etc. Comparing demographics information reported at different point in time is often problematic because boundaries keep changing. The **recogeo** package faciliates reconciling boundaries and their data by a spatial analysis of the boundaries of two different periods. In this post, I explain how to install the package, reconcile two spatial objects and check the results. 
+Demographics information is usually reported in relation to precise boundaries: administrative, electoral, statistical, etc. Comparing demographics information reported at different point in time is often problematic because boundaries keep changing. The **recogeo** package faciliates reconciling boundaries and their data by spatial analysis of the boundaries of two different periods. In this post, I explain how to install the package, reconcile two spatial objects and check the results. 
 
 ## Install the package
 
-Let's first make sure the package is installed from Github and can load correctly. If you don't have it already, you might to install the devtools with `install.packages('devtools)`. Then you can install the package with:
+Let's first make sure the package is installed from Github and can load correctly. If you don't have it already, you need to install the devtools with `install.packages('devtools)`. Then you can install the package with:
 
 ```{r, eval = FALSE}
 library(devtools) 
 install_github('fraba/recogeo')
 ```
 
-and load it with `r library(recogeo)`.
+and load it with `library(recogeo)`.
 
 At this point the **recogeo** package should be loaded and attached. If you get an error, make sure to create a new issue [here](https://github.com/fraba/recogeo/issues) or to post a comment below.  
 
 ## Spatial data
 
-Now let's load two [*Simple Features*](https://en.wikipedia.org/wiki/Simple_Features) (or *sf*) and their corresponding *data.frame*. These two objects contains information about boundaries and population of Piedmont **comune**, the lowest administrative divisions in Italy, for 1991 and 2018. You can download the `spatial_objs.rda` from [here](http://example.com).
+Now let's load two [*Simple Features*](https://en.wikipedia.org/wiki/Simple_Features) (or *sf*) and their corresponding *data.frame*. These two objects contain information about boundaries and population of Piedmont **comune**, the lowest administrative divisions in Italy, for 1991 and 2018. You can download the `spatial_objs.rda` from [here](http://example.com).
 
 ```{r}
 load("data/spatial_objs.rda")
@@ -54,11 +54,11 @@ grid.arrange(
 
 From 1991 to 2018, the number of *comune* in Piedmont has decreased from `r formatC(nrow(piedmont_1991.sf), format="d", big.mark=",")` to `r formatC(nrow(piedmont_2018.sf), format="d", big.mark=",")` while the total population of the region has increased from `r formatC(sum(piedmont_1991.sf$POP_1991), format="d", big.mark=",")` to `r formatC(sum(piedmont_2018.sf$POP_2018, na.rm = T), format="d", big.mark=",")`. In the 2018 dataset, `r sum(is.na(piedmont_2018.sf$POP_2018))` *comune* have missing values for `POP_2018` (grey in  the plot). 
 
-We want to compare how the population has changed over time. But, as it is common, altought the outer boundaries of the region have probably not changed (but let's also check this) internal boundaries have been redrawn. In other words, to conduct a one-to-one comparison between 1991 and 2018, we need to identify a new set of geographic units (i.e. polygons) that is related to both the 1991 and 2018 polygons either by a **one-to-one relation**, when the unit has not changed over time, or by a **one-to-many** relation, when the unit has changed. The **one-to-many** relation will involve the union of multiple polygons and the transformation of their varibales.
+We want to compare how the population has changed over time. But, as it is common, although the outer boundaries of the region have probably not changed (but let's also check this) internal boundaries have been redrawn. In other words, to conduct a one-to-one comparison between 1991 and 2018, we need to identify a new set of geographic units (i.e. polygons) that is related to both the 1991 and 2018 polygons either by a **one-to-one relation**, when the unit has not changed over time, or by a **one-to-many** relation, when the unit has changed. The **one-to-many** relation will involve the union of multiple polygons and the transformation of their variables.
 
-First, let's see whether the external boundaries have changed. How to do is not a trivial problem. Even if two polygons represent the same geographic area it would be rare for the two to be *exactly* equal. From a GIS perspective *equality* (or `sf::st_equals()`) means that the ordered set of points defining the two spatial features is equal, so same point coordinates but also points expressed in the same order. Clearly if two features are the product of distinct digitalisation processes the number, order and position of points will be different or slighlty different. As a result the area of the polygons defined by the external boundaries will be similar but not equal.
+First, let's see whether the external boundaries have changed. How to do is not a trivial problem. Even if two polygons represent the same geographic area it would be rare for the two to be *exactly* equal. From a GIS perspective *equality* (or `sf::st_equals()`) means that the ordered set of points defining the two spatial features is equal, so same point coordinates but also points expressed in the same order. Clearly, if two features are the product of distinct digitalisation processes the number, order and position of points will be different or slightly different. As a result, the area of the polygons defined by the external boundaries will be similar but not equal.
 
-Let's check it, after removing (small) gaps between polygons and cobining all them all:
+Let's check it, after removing (small) gaps between polygons and combining all them all:
 
 ```{r}
 library(dplyr)
@@ -99,8 +99,8 @@ st_contains(piedmont_union_2018.sf,
             piedmont_union_1991.sf)
 ```
 
-The `(empty)` results means that, the two geometries don't contain each other. This is again not surprising since we have two complex polygons defined by `r nrow(piedmont_union_1991.sf[[1]][[1]])` and 
-`r nrow(piedmont_union_2018.sf[[1]][[1]])` points respectively. It only suffices that one point is slighlty outside the other boundary to fail the  `sf::st_contains()` test. But we can overcome this problem by slighlty expand the two geometries by a few meters (e.g. 800) with `sf::st_buffer` and retest.
+The `(empty)` results mean that the two geometries don't contain each other. This is again not surprising since we have two complex polygons defined by `r nrow(piedmont_union_1991.sf[[1]][[1]])` and 
+`r nrow(piedmont_union_2018.sf[[1]][[1]])` points respectively. It only suffices that one point is slightly outside the other boundary to fail the  `sf::st_contains()` test. But we can overcome this problem by slightly expand the two geometries by a few meters (e.g. 800) with `sf::st_buffer` and retest.
 
 ```{r}
 st_contains(st_buffer(piedmont_union_1991.sf, 800), 
@@ -185,15 +185,15 @@ grid.arrange(ggplot() +
 
 ```
 
-We have now a fair assumption that based on our spatial analysis the the outer boundary of the region isn't changed and what is changed are only internal administrative boundaries.
+We have now a fair assumption that based on our spatial analysis the outer boundary of the region isn't changed and what is changed are only internal administrative boundaries.
 
 ## Relation between geographies
 
-To reconcile the internal geographies, we use the core function from the **recogeo** package: `reconcileGeographies()`. What the function requires are two spatial objects with a unique id variable (if we don't specify the column names of the unique id, the first column of each *data.frame* will be assumed to be the unique id variable). We can also add a preferred CRS with units in meters expressed using the [EPSG code](https://www.epsg-registry.org/) (this [link](http://epsg.io/) is also usefull to find a coodinate system). Two additional numeric parameters can also be specified: the distance or width in meters of the buffer (`dist_buffer`) and the minimum intersection area in squared meters (`min_inters_area`).
+To reconcile the internal geographies, we use the core function from the **recogeo** package: `reconcileGeographies()`. What the function requires are two spatial objects with a unique id variable (if we don't specify the column names of the unique id, the first column of each *data.frame* will be assumed to be the unique id variable). We can also add a preferred CRS with units in meters expressed using the [EPSG code](https://www.epsg-registry.org/) (this [link](http://epsg.io/) is also useful to find a coordinate system). Two additional numeric parameters can also be specified: the distance or width in meters of the buffer (`dist_buffer`) and the minimum intersection area in squared meters (`min_inters_area`).
 
-We already explained before why it might be necessary to expand the geometries to test for equality. In the code before we set the `dist_buffer` to 800 meters but by default the the function will expand them by 5 meters. It is important to try different values if you obtain unsatisfactory results. 
+We already explained before why it might be necessary to expand the geometries to test for equality. In the code, before we set the `dist_buffer` to 800 meters but by default the function will expand them by 5 meters. It is important to try different values if you obtain unsatisfactory results. 
 
-The `min_inters_area` arguemnt allows you to set the tollerance for the intersection test between two geometries. This might be necessary because of very small differences in the boundaries contained in the two spatial objects. For example, let's find out which features from `piedmont_1991.sf` intersects with `piedmont_1991.sf`.  
+The `min_inters_area` argument allows you to set the tolerance for the intersection test between two geometries. This might be necessary because of very small differences in the boundaries contained in the two spatial objects. For example, let's find out which features from `piedmont_1991.sf` intersects with `piedmont_1991.sf`.  
 
 ```{r}
 res <- 
@@ -201,7 +201,7 @@ res <-
 ```
 
 
-`res` is now a sparse matrix (actually a list) of with dimensions `r dim(res)`, which of course corresponds to the features of the first and second spatial object respectively. The first features of the first spatial objects intersects with the following features from the second object:
+`res` is now a sparse matrix (actually a list) of with dimensions `r dim(res)`, which of course corresponds to the features of the first and second spatial object respectively. The first features of the first spatial objects intersect with the following features from the second object:
 
 ```{r}
 res[[1]]
@@ -230,18 +230,18 @@ ggplot() +
           fill = NA, colour = 'red')
 ```
 
-This intersections seems mostly due to changes in the precision of the geometries from the two datasets. The boundary of `piedmont_1991.sf[1,]` has `r nrow(piedmont_1991.sf[1,][["geometry"]][[1]][[1]])` points while the boundary of the corresponding `piedmont_2018.sf[1127,]` has `r nrow(piedmont_2018.sf[1127,][["geometry"]][[1]][[1]][[1]])` points.
+These intersections seems mostly due to changes in the precision of the geometries from the two datasets. The boundary of `piedmont_1991.sf[1,]` has `r nrow(piedmont_1991.sf[1,][["geometry"]][[1]][[1]])` points while the boundary of the corresponding `piedmont_2018.sf[1127,]` has `r nrow(piedmont_2018.sf[1127,][["geometry"]][[1]][[1]][[1]])` points.
 
 This specific setting (which is actually very common) raises two questions. 
 1. Should we consider consider `piedmont_1991.sf[1,]` and `piedmont_2018.sf[1127,]` as the same geography?
 2. Should we consider the intersection between `piedmont_1991.sf[1,]` and the other four geographies (`r paste(res[[1]][2:5], collapse = ", ")`) as significant enough to suggest to combine all the geographies involved?
 
-Let's see how the `reconcileGeographies()` will answer to both questions, giveng the default arguments of `r dist_buffer = 800` and `r min_inters_area = 350000`. 
+Let's see how the `reconcileGeographies()` will answer to both questions, giveng the default arguments of `dist_buffer = 800` and `min_inters_area = 350000`. 
 
 The answer to the first question is determined by 
 
 ```{r}
-dist_buffer
+dist_buffer <- 800
 
 res1 <-
   sf::st_contains(piedmont_1991.sf[1,] %>%
@@ -260,7 +260,7 @@ res1 == TRUE & res2 == TRUE
 And the answer to the second question is determined by 
 
 ```{r}
-min_inters_area
+min_inters_area <- 350000
 
 intersection_area <-
   st_area(
@@ -271,11 +271,11 @@ intersection_area <-
 as.numeric(intersection_area) > min_inters_area
 ```
 
-What the user will need to decide is the tollerance for both the equality and intersection tests. In order to determine the best value it is important to visually inspect the results and probably also to determine the precision of the boundaries (in terms of the number of points used to describe the features) of the two spatial objects. And a rough estimation of the respective precisions can be obtained by `object.size(piedmont_1991.sf)` (`r format(object.size(piedmont_1991.sf), units = "KB")`) and `object.size(piedmont_2018.sf)` (`r format(object.size(piedmont_2018.sf), units = "KB")`).
+What the user will need to decide is the tolerance for both the equality and intersection tests. In order to determine the best value it is important to visually inspect the results and probably also to determine the precision of the boundaries (in terms of the number of points used to describe the features) of the two spatial objects. And a rough estimation of the respective precisions can be obtained by `object.size(piedmont_1991.sf)` (`r format(object.size(piedmont_1991.sf), units = "KB")`) and `object.size(piedmont_2018.sf)` (`r format(object.size(piedmont_2018.sf), units = "KB")`).
 
 ## reconcileGeographies()
 
-After determinging the what kind of tollerance should we pass to the function, it is now time to actually run the function on the two spatial objects.
+After determining the what kind of tolerance should we pass to the function, it is now time to actually run the function on the two spatial objects.
 
 ```{r}
 library(recogeo)
@@ -322,7 +322,7 @@ grid.arrange(
 ```
 
 
-In this case, it seams clear that the 1991 *comune* lost part of its territory to another *comune* or resulting in a new *comune* being created.
+In this case, it seems clear that the 1991 *comune* lost part of its territory to another *comune* or resulting in a new *comune* being created.
 
 The function `testReconciledGeographies()` instead tests the spatial characteristics of reconciled geographies. It takes the *data.frame* resulting from the `reconcileGeographies()` function and the spatial objects.
 
@@ -332,13 +332,13 @@ test_res <-
                                      piedmont_1991.sf, piedmont_2018.sf)
 ```
 
-This tests is particularly important to determine whether the results are satisfactory because compare the sum of the areas of the old geographies from the two spatial objects that correspond to new reconciled geographies.
+This test is particularly important to determine whether the results are satisfactory because compare the sum of the areas of the old geographies from the two spatial objects that correspond to new reconciled geographies.
 
 ```{r}
 kable(test_res[sample(1:nrow(test_res), 10),], row.names = F)
 ```
 
-The column `n_A` and `n_B` indicates how many geographies need to be aggregated to create a new reconciled geography. The `area_diff_perc` column indicates the percentage difference between the two new reconciled geographies resulting from the union of the geographies from the two original spatial objects. Intuitively, a new reconciled geographied can be produced by the union of geographies from any of the two original spatial objects. 
+The column `n_A` and `n_B` indicates how many geographies need to be aggregated to create a new reconciled geography. The `area_diff_perc` column indicates the percentage difference between the two new reconciled geographies resulting from the union of the geographies from the two original spatial objects. Intuitively, a new reconciled geography can be produced by the union of geographies from any of the two original spatial objects. 
 
 
 ## reconcileData()
